@@ -35,6 +35,7 @@ import android.provider.ContactsContract;
 
 import com.android.emergency.ContactTestUtils;
 import com.android.emergency.EmergencyContactManager;
+import com.android.emergency.TestConfig;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,9 +49,11 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.Shadows;
+import org.robolectric.annotation.Config;
 
 /** Unit tests for {@link ContactPreferences}. */
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = TestConfig.MANIFEST_PATH, sdk = TestConfig.SDK_VERSION)
 public class ContactPreferencesTest {
     private static final String NAME = "Jake";
     private static final String PHONE_NUMBER = "123456";

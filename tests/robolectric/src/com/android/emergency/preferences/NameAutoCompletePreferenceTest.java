@@ -17,8 +17,10 @@ package com.android.emergency.preferences;
 
 import static com.google.common.truth.Truth.assertThat;
 import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.nullable;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import android.content.Context;
@@ -26,6 +28,9 @@ import android.content.SharedPreferences;
 import android.support.v7.preference.PreferenceGroup;
 import android.support.v7.preference.PreferenceManager;
 import android.support.v7.preference.PreferenceScreen;
+import android.text.Editable;
+import android.view.View;
+import android.widget.AutoCompleteTextView;
 
 import com.android.emergency.PreferenceKeys;
 import com.android.emergency.TestConfig;
@@ -38,14 +43,16 @@ import org.mockito.MockitoAnnotations;
 import org.robolectric.RobolectricTestRunner;
 import org.robolectric.RuntimeEnvironment;
 import org.robolectric.annotation.Config;
+import org.robolectric.util.ReflectionHelpers;
 
-/** Unit tests for {@link EmergencyEditTextPreference}. */
+/** Unit tests for {@link NameAutoCompletePreference}. */
 @RunWith(RobolectricTestRunner.class)
 @Config(manifest = TestConfig.MANIFEST_PATH, sdk = TestConfig.SDK_VERSION)
-public class EmergencyEditTextPreferenceTest {
+public class NameAutoCompletePreferenceTest {
     @Mock private PreferenceManager mPreferenceManager;
     @Mock private SharedPreferences mSharedPreferences;
-    private EmergencyEditTextPreference mPreference;
+    @Mock private NameAutoCompletePreference.SuggestionProvider mAutoCompleteSuggestionProvider;
+    private NameAutoCompletePreference mPreference;
 
     @Before
     public void setUp() {
@@ -55,7 +62,8 @@ public class EmergencyEditTextPreferenceTest {
 
         Context context = RuntimeEnvironment.application;
 
-        mPreference = spy(new EmergencyEditTextPreference(context, null));
+        mPreference =
+            spy(new NameAutoCompletePreference(context, null, mAutoCompleteSuggestionProvider));
 
         PreferenceGroup prefRoot = spy(new PreferenceScreen(context, null));
         when(prefRoot.getPreferenceManager()).thenReturn(mPreferenceManager);
@@ -63,7 +71,8 @@ public class EmergencyEditTextPreferenceTest {
     }
 
     @Test
-    public void testDefaultProperties() {
+    public void testProperties() {
+        assertThat(mPreference).isNotNull();
         assertThat(mPreference.isEnabled()).isTrue();
         assertThat(mPreference.isPersistent()).isTrue();
         assertThat(mPreference.isSelectable()).isTrue();
@@ -72,31 +81,55 @@ public class EmergencyEditTextPreferenceTest {
 
     @Test
     public void testReloadFromPreference() throws Throwable {
-        mPreference.setKey(PreferenceKeys.KEY_MEDICAL_CONDITIONS);
+        mPreference.setKey(PreferenceKeys.KEY_NAME);
 
-        String medicalConditions = "Asthma";
+        String name = "John";
         when(mSharedPreferences.getString(eq(mPreference.getKey()), nullable(String.class)))
-                .thenReturn(medicalConditions);
+                .thenReturn(name);
 
         mPreference.reloadFromPreference();
-        assertThat(mPreference.getText()).isEqualTo(medicalConditions);
+        assertThat(mPreference.getText()).isEqualTo(name);
         assertThat(mPreference.isNotSet()).isFalse();
     }
 
     @Test
-    public void testOnPreferenceChange() throws Throwable {
-        final String medicalConditions = "Asthma";
-        mPreference.onPreferenceChange(mPreference, medicalConditions);
-
-        assertThat(mPreference.getSummary()).isEqualTo(medicalConditions);
+    public void testSetText() throws Throwable {
+        final String name = "John";
+        mPreference.setText(name);
+        assertThat(mPreference.getText()).isEqualTo(name);
+        assertThat(mPreference.getSummary()).isEqualTo(name);
     }
 
     @Test
-    public void testSetText() throws Throwable {
-        final String medicalConditions = "Asthma";
-        mPreference.setText(medicalConditions);
+    public void testGetAutoCompleteTextView() {
+        AutoCompleteTextView autoCompleteTextView = mPreference.getAutoCompleteTextView();
+        assertThat(autoCompleteTextView).isNotNull();
+    }
 
-        assertThat(mPreference.getText()).isEqualTo(medicalConditions);
-        assertThat(mPreference.getSummary()).isEqualTo(medicalConditions);
+    @Test
+    public void testCreateAutocompleteSuggestions_noNameToSuggest() {
+        when(mAutoCompleteSuggestionProvider.hasNameToSuggest()).thenReturn(false);
+        assertThat(mPreference.createAutocompleteSuggestions()).isEqualTo(new String[] {});
+    }
+
+    @Test
+    public void testCreateAutocompleteSuggestions_nameToSuggest() {
+        final String name = "Jane";
+        when(mAutoCompleteSuggestionProvider.hasNameToSuggest()).thenReturn(true);
+        when(mAutoCompleteSuggestionProvider.getNameSuggestion()).thenReturn(name);
+        assertThat(mPreference.createAutocompleteSuggestions()).isEqualTo(new String[] {name});
+    }
+
+    @Test
+    public void testBindDialog_shouldFocusOnEditText() {
+        final AutoCompleteTextView editText = mock(AutoCompleteTextView.class);
+        final Editable text = mock(Editable.class);
+        when(editText.getText()).thenReturn(text);
+        when(text.length()).thenReturn(0);
+        ReflectionHelpers.setField(mPreference, "mAutoCompleteTextView", editText);
+
+        mPreference.onBindDialogView(mock(View.class));
+
+        verify(editText).requestFocus();
     }
 }

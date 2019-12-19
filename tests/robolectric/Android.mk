@@ -15,22 +15,20 @@
 LOCAL_PATH := $(call my-dir)
 include $(CLEAR_VARS)
 
-LOCAL_MODULE := EmergencyInfoRoboTests
-
 LOCAL_SRC_FILES := $(call all-java-files-under, src)
 
-LOCAL_JAVA_RESOURCE_DIRS := config
-
 LOCAL_STATIC_JAVA_LIBRARIES := \
+    platform-robolectric-android-all-stubs \
+    mockito-robolectric-prebuilt \
+    truth-prebuilt \
     emergencyinfo-test-common
 
 LOCAL_JAVA_LIBRARIES := \
-    robolectric_android-all-stub \
-    Robolectric_all-target \
-    mockito-robolectric-prebuilt \
-    truth-prebuilt
+    junit \
+    platform-robolectric-3.6.1-prebuilt
 
 LOCAL_INSTRUMENTATION_FOR := EmergencyInfo
+LOCAL_MODULE := EmergencyInfoRoboTests
 
 LOCAL_MODULE_TAGS := optional
 
@@ -43,13 +41,11 @@ include $(CLEAR_VARS)
 
 LOCAL_MODULE := RunEmergencyInfoRoboTests
 
-LOCAL_JAVA_LIBRARIES := \
-    EmergencyInfoRoboTests \
-    robolectric_android-all-stub \
-    Robolectric_all-target \
-    mockito-robolectric-prebuilt \
-    truth-prebuilt
+LOCAL_SDK_VERSION := current
+
+LOCAL_STATIC_JAVA_LIBRARIES := \
+    EmergencyInfoRoboTests
 
 LOCAL_TEST_PACKAGE := EmergencyInfo
 
-include external/robolectric-shadows/run_robotests.mk
+include prebuilts/misc/common/robolectric/3.6.1/run_robotests.mk

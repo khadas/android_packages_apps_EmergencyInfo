@@ -21,6 +21,7 @@ import android.database.Cursor;
 import android.provider.SearchIndexablesContract;
 
 import com.android.emergency.R;
+import com.android.emergency.TestConfig;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -29,9 +30,11 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.robolectric.RobolectricTestRunner;
+import org.robolectric.annotation.Config;
 
 /** Unit tests for {@link EmergencySearchIndexablesProvider}. */
 @RunWith(RobolectricTestRunner.class)
+@Config(manifest = TestConfig.MANIFEST_PATH, sdk = TestConfig.SDK_VERSION)
 public final class EmergencySearchIndexablesProviderTest {
     private EmergencySearchIndexablesProvider mProvider;
 
